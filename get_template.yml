@@ -1,0 +1,53 @@
+---
+
+- name: Build template
+  connection: ansible.netcommon.network_cli
+  gather_facts: false
+  hosts: "{{ host }}"
+  tasks:
+
+      - name: Get IOS facts
+        cisco.ios.ios_facts:
+            gather_subset: all
+            gather_network_resources: all
+
+      - name: Set facts
+        set_fact:
+            model: "{{ ansible_net_model }}"
+            serial: "{{ ansible_net_serialnum }}"
+            hostname: "{{ inventory_hostname }}"
+            version: "{{ ansible_net_version }}"
+            fqdn: "{{ inventory_hostname }}.{{ global.domain_name }}"
+            role: router
+            vtp_mode: transparent
+            vtp_domain: ''
+            vtp_password: ''
+
+      - name: Get mgmt IP
+        set_fact:
+            mgmt_ip_address: "{{ lookup('community.general.dig', fqdn)}}"
+
+      - name: Get mgmt int
+        set_fact:
+            mgmt_int: "{{ item.name }}" 
+        when: "item.ipv4 is defined and item.ipv4[0].address.split(' ')[0] == mgmt_ip_address"
+        loop: "{{ ansible_network_resources.l3_interfaces }}" 
+
+      - name: Get mgmt netmask
+        set_fact:
+            mgmt_netmask: "{{ item.ipv4[0].address.split(' ')[1] }}"
+        when: "item.ipv4 is defined and item.ipv4[0].address.split(' ')[0] == mgmt_ip_address"
+        loop: "{{ ansible_network_resources.l3_interfaces }}"
+
+      - name: Get syslocation
+        set_fact:
+            snmp_location: "{{ (ansible_net_config | regex_search('^snmp-server\\slocation\\s(.*)$', '\\1', multiline=True))[0] }}"
+
+      - name: Debug
+        debug:
+            var: snmp_location
+
+      - name: Build template
+        ansible.builtin.template:
+            src: templates/ios/ios.j2
+            dest: configs/rendered/{{ inventory_hostname }}.conf
