@@ -1,0 +1,65 @@
+---
+
+### CONNECTION VARS ###
+
+ansible_connection: ansible.netcommon.network_cli
+ansible_network_os: cisco.ios.ios
+ansible_password: !vault ... 
+ansible_become: yes
+ansible_become_method: enable
+ansible_become_password: !vault ... 
+
+### CONFIG VARS ###
+global:
+    aaa_group: MYGROUP
+    acl_snmp_nms_server: 10.0.0.1
+    acl_snmp_securenet_id: 10.0.0.0
+    acl_snmp_securenet_wildcard: 0.0.0.255
+    acl_ssh_jumphost_server: 10.0.0.1
+    acl_ssh_securenet_id: 10.0.0.0
+    acl_ssh_securenet_wildcard: 0.0.0.255
+    clock_summer_time: PDT recurring
+    clock_timezone: PST -8 0
+    dns1: 8.8.8.8
+    dns2: 8.8.4.4
+    domain_name: example.net
+    ntp_auth_key: 105C1C0A121E0F070D102F
+    ntp_server: pool.ntp.org
+    ntp_key_id: 1337
+    snmp_contact: wan@example.org
+    snmpv3_auth_pass: s3cret!
+    snmpv3_group: SNMPv3GROUP
+    snmpv3_priv_pass: s3cret!
+    snmpv3_user: snmp_user
+    snmpv3_view: snmp_view
+    syslog_server: 10.0.0.3
+    template_path: ./templates
+    tftp_server: 10.0.0.3
+    user1_username: user1
+    user1_privilege: 15
+    user1_type5_hash: $1$71wx$jra4oC/KplvE27A4cRUu.1
+    user1_type9_hash: $14$71wx$dM6HCPG6OsZkMU$bAcEzUrGwRdBQtz5nt7Sza89CkeP6/jNn7de0bX3MwU
+    user2_username: user2
+    user2_privilege: 15
+    user2_type5_hash: $1$aWE7$2lZTWzJsbfspGzXwF7msG/
+    user2_type9_hash: $14$aWE7$PYQ9JhwkLNxPhE$gUWa3kXdbLtWMYdLv3J3./0ZzGoWRQWbcJmsYGGEmb.
+    user3_username: user3
+    user3_privilege: 15
+    user3_type5_hash: $1$ZjJQ$skPKAWtqVWrJuc0aOnPv20
+    user3_type9_hash: $14$ZjJQ$KKoMlRmf9txtdE$nz4FTNfGVODqmIgdCTtvMQ0NyH9zvh5KLE7gsiS55b2
+    user4_username: user4
+    user4_privilege: 15
+    user4_type5_hash: $1$Z30o$627WQuHBGs7oaO8XrsZw60
+    user4_type9_hash: $14$Z30o$sOU9zwwibcpgtE$peTVi/QGuxfAqNcZSFFLKO8c7K3uolan2QpeV0zIMzc
+    user5_username: user5
+    user5_privilege: 5
+    user5_type5_hash: $1$E0/W$AvsvbBnOPPSPj3To/o6iC0
+    user5_type9_hash: $14$E0/W$Od1sSNKZ0ZBXFE$4FJI90DNFiW96lYGHhJuEWHFcfWRoIx38ULfzERE9YA
+    user6_username: user6
+    user6_privilege: 5
+    user6_type5_hash: $1$k8/X$5cF6FaPTsoHAzW4GH4vci.
+    user6_type9_hash: $14$k8/X$aLyJCwlAqVAzLk$KE6a6Aa2Bc0zccpWTOddZq7FH1Wbsmc3aoe5A51KYrI
+    secret_level15_type5_hash: $1$PLu4$CF2CabX904Ij18R4QV1.Z1
+    secret_level15_type9_hash: $14$PLu4$ESbB89Dta8xtCU$dEYUMuxyW77TNLS3UrDek6OaRIqi/eVfoXNsmAgeHJc
+    secret_level5_type5_hash: $1$NxQE$9pVbIPaQ1wU29AsbR7Xt0/
+    secret_level5_type9_hash: $14$NxQE$7ZZ61Qzp2OxbUk$brvy.K77Ls3BAXxFHka/AyVJY99I7iDe4I6Pz3.Ukzw

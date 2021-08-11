@@ -1,0 +1,16 @@
+---
+
+- name: Backup config
+  connection: ansible.netcommon.network_cli
+  gather_facts: false
+  hosts: all
+  tasks:
+      - name: Get config
+        cisco.ios.ios_facts:
+            gather_subset:
+            - config
+
+      - name: Save config
+        copy:
+            content: "{{ ansible_net_config }}"
+            dest: configs/{{ inventory_hostname }}.conf

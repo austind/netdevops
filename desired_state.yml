@@ -1,0 +1,144 @@
+---
+
+- name: Cisco IOS Desired State
+  connection: ansible.netcommon.network_cli
+  gather_facts: false
+  hosts: "{{ host }}"
+  strategy: free
+  tasks:
+
+    - name: Get yo facts
+      cisco.ios.ios_facts:
+        gather_subset: min
+
+    - name: Set yo facts
+      set_fact:
+        model: "{{ ansible_net_stacked_models[0] | default(ansible_net_model | default(null))}}"
+        serial: "{{ ansible_net_serialnum }}"
+        hostname: "{{ inventory_hostname }}"
+        version: "{{ ansible_net_version }}"
+
+    - name: Hostname
+      cisco.ios.ios_config:
+        lines: hostname {{ hostname }}
+
+    - name: DNS
+      ignore_errors: yes
+      cli_config:
+        config: "{{ lookup('template', './templates/ios/dns.j2') }}"
+
+    - name: Login banner
+      ignore_errors: yes
+      cisco.ios.ios_banner:
+        banner: login
+        text: "{{ lookup('file', './templates/ios/banner_login.txt') }}"
+        state: present
+
+    - name: Exec banner
+      ignore_errors: yes
+      cisco.ios.ios_banner:
+        banner: exec
+        state: absent
+
+    - name: Global defaults
+      ignore_errors: yes
+      cisco.ios.ios_config:
+        lines:
+        - service nagle
+        - service tcp-keepalives-in
+        - service timestamps debug datetime localtime msec show-timezone
+        - service timestamps log datetime localtime msec show-timezone
+        - service password-encryption
+        - service unsupported-transceiver
+        - lldp run
+        - login on-failure log
+        - login on-success log
+        - ip ssh time-out 60
+        - ip ssh version 2
+        - clock timezone {{ global.clock_timezone }}
+        - clock summer-time {{ global.clock_summer_time }}
+        - no errdisable detect cause gbic-invalid
+        - errdisable recovery cause bpduguard
+
+    - name: AAA
+      ignore_errors: yes
+      cli_config:
+        config: "{{ lookup('template', './templates/ios/aaa.j2') }}"
+
+    - name: Console & VTY
+      ignore_errors: yes
+      cli_config:
+        config: "{{ lookup('template', './templates/ios/console_vty.j2') }}"
+
+    - name: Logging
+      ignore_errors: yes
+      cisco.ios.ios_logging_global:
+        config:
+          console:
+            severity: notifications
+          buffered:
+            size: 16384
+          trap: warnings
+          facility: local7
+          hosts:
+            - hostname: "{{ global.syslog_server }}"
+        state: overridden
+
+    - name: NTP
+      ignore_errors: yes
+      cisco.ios.ios_ntp:
+        server: "{{ global.ntp_server }}"
+        key_id: "{{ global.ntp_key_id }}"
+        auth: true
+        auth_key: "{{ global.ntp_auth_key }}"
+        state: present
+
+    - name: Users
+      ignore_errors: yes
+      cisco.ios.ios_user:
+        aggregate:
+        - name: "{{ global.user1_username }}"
+        - name: "{{ global.user2_username }}"
+        - name: "{{ global.user3_username }}"
+        - name: "{{ global.user4_username }}"
+        privilege: 15
+        state: present
+
+    - name: ACLs
+      ignore_errors: yes
+      cisco.ios.ios_acls:
+        config:
+        - afi: ipv4
+          acls:
+          - name: 10
+            aces:
+            - grant: permit
+              sequence: 10
+              source:
+                address: "{{ global.acl_ssh_jumphost_server }}"
+            - grant: permit
+              sequence: 20
+              source:
+                address: "{{ global.acl_ssh_securenet_id }}"
+                wildcard_bits: "{{ global.acl_ssh_securenet_wildcard }}"
+          - name: 20
+            aces:
+            - grant: permit
+              sequence: 10
+              source:
+                address: "{{ global.acl_snmp_nms_server }}"
+            - grant: permit
+              sequence: 20
+              source:
+                address: "{{ global.acl_snmp_securenet_id }}"
+                wildcard_bits: "{{ global.acl_snmp_securenet_wildcard }}"
+        state: replaced
+
+    - name: Aliases
+      ignore_errors: yes
+      cli_config:
+        config: "{{ lookup('template', './templates/ios/aliases.j2') }}"
+
+    - name: Save config
+      cisco.ios.ios_config:
+        save_when: modified
