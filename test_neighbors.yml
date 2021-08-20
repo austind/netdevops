@@ -1,0 +1,22 @@
+---
+
+- name: Set interface description to LLDP/CDP neighbor
+  connection: ansible.netcommon.network_cli
+  gather_facts: false
+  hosts: "{{ host }}"
+  tasks:
+      - name: Gather facts
+        cisco.ios.ios_facts:
+          gather_subset: interfaces
+
+      - name: Set descriptions
+        cli_config:
+          config: |
+            interface {{ item.key }}
+             description {{ item.value[0].host.split('.')[0] }}
+        when: 
+        - item.value[0].host is defined
+        - item.value[0].host is string
+        #- ansible_net_interfaces[item.key].description is not string
+        loop: "{{ ansible_net_neighbors | dict2items }}" 
+
