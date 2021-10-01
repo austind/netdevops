@@ -13,7 +13,7 @@
 
     - name: Set yo facts
       set_fact:
-        model: "{{ ansible_net_stacked_models[0] | default(ansible_net_model | default(null))}}"
+        model: "{{ ansible_net_model }}"
         serial: "{{ ansible_net_serialnum }}"
         hostname: "{{ inventory_hostname }}"
         version: "{{ ansible_net_version }}"
@@ -105,34 +105,43 @@
         state: present
 
     - name: ACLs
-      ignore_errors: yes
-      cisco.ios.ios_acls:
-        config:
-        - afi: ipv4
-          acls:
-          - name: 10
-            aces:
-            - grant: permit
-              sequence: 10
-              source:
-                address: "{{ global.acl_ssh_jumphost_server }}"
-            - grant: permit
-              sequence: 20
-              source:
-                address: "{{ global.acl_ssh_securenet_id }}"
-                wildcard_bits: "{{ global.acl_ssh_securenet_wildcard }}"
-          - name: 20
-            aces:
-            - grant: permit
-              sequence: 10
-              source:
-                address: "{{ global.acl_snmp_nms_server }}"
-            - grant: permit
-              sequence: 20
-              source:
-                address: "{{ global.acl_snmp_securenet_id }}"
-                wildcard_bits: "{{ global.acl_snmp_securenet_wildcard }}"
-        state: replaced
+      cisco.ios.ios_config:
+        lines:
+        - access-list 10 remark --- SSH ACCESS ---
+        - access-list 10 permit {{ global.acl_ssh_jumphost_server }}
+        - access-list 10 permit {{ global.acl_ssh_securenet_id }} {{ global.acl_ssh_securenet_wildcard }}
+        - access-list 20 remark --- SNMP ACCESS ---
+        - access-list 20 permit {{ global.acl_snmp_nms_server }}
+        - access-list 20 permit {{ global.acl_snmp_securenet_id }} {{ global.acl_snmp_securenet_wildcard }}
+ 
+      #ignore_errors: yes
+      #cisco.ios.ios_acls:
+      #  config:
+      #  - afi: ipv4
+      #    acls:
+      #    - name: 10
+      #      aces:
+      #      - grant: permit
+      #        sequence: 10
+      #        source:
+      #          address: "{{ global.acl_ssh_jumphost_server }}"
+      #      - grant: permit
+      #        sequence: 20
+      #        source:
+      #          address: "{{ global.acl_ssh_securenet_id }}"
+      #          wildcard_bits: "{{ global.acl_ssh_securenet_wildcard }}"
+      #    - name: 20
+      #      aces:
+      #      - grant: permit
+      #        sequence: 10
+      #        source:
+      #          address: "{{ global.acl_snmp_nms_server }}"
+      #      - grant: permit
+      #        sequence: 20
+      #        source:
+      #          address: "{{ global.acl_snmp_securenet_id }}"
+      #          wildcard_bits: "{{ global.acl_snmp_securenet_wildcard }}"
+      #  state: replaced
 
     - name: Aliases
       ignore_errors: yes
