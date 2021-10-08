@@ -1,0 +1,29 @@
+---
+
+- name: Clean config
+  connection: ansible.netcommon.network_cli
+  gather_facts: false
+  hosts: "{{ host }}"
+  tasks:
+      - name: Get config
+        cisco.ios.ios_facts:
+            gather_subset:
+            - config
+
+      - name: Set facts
+        set_fact:
+            has_qos: "{{ ansible_net_config | regex_search('^mls\\sqos$', multiline=True) }}"
+
+      - name: Remove QoS config
+        cli_config:
+            config: "{{ lookup('file', './no-qos.conf') }}"
+        when: has_qos | length
+
+      - name: Remove creds
+        cisco.ios.ios_user:
+            name: adecoup
+            state: absent
+
+      - name: Save config
+        cisco.ios.ios_config:
+            save_when: modified
